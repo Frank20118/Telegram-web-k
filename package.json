@@ -4,13 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
     "start": "vite --force",
     "start-in-docker": "vite --force --host",
-    "serve": "pnpm run build; node server.js",
-    "build": "pnpm run generate-changelog && vite build",
+    "serve": "npm run build && node server.js",
+    "build": "vite build",
     "test": "vitest",
-    "whybundled": "pnpm run profile && whybundled stats.json",
+    "whybundled": "npm run profile && npx whybundled stats.json",
     "generate-mtproto-types": "node ./src/scripts/generate_mtproto_types.js src/",
     "generate-changelog": "node ./src/scripts/generate_changelog.js",
     "generate-icons": "node ./src/scripts/icomoon/icomoon_generate.js",
@@ -70,6 +69,5 @@
     "vite-plugin-handlebars": "^1.6.0",
     "vite-plugin-solid": "^2.8.0",
     "vitest": "^0.34.6"
-  },
-  "packageManager": "pnpm@9.15.3+sha512.1f79bc245a66eb0b07c5d4d83131240774642caaa86ef7d0434ab47c0d16f66b04e21e0c086eb61e62c77efc4d7f7ec071afad3796af64892fae66509173893a"
+  }
 }
