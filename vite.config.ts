@@ -79,14 +79,15 @@ if(USE_OWN_SOLID) {
 }
 
 export default defineConfig({
-  plugins: [
-    process.env.VITEST ? undefined : checker({
-      typescript: true,
-      eslint: {
-        lintCommand: 'eslint "./src/**/*.{ts,tsx}" --ignore-pattern "/src/solid/*"',
-        useFlatConfig: true
-      }
-    }),
+  base: './', // ВАЖНО!
+  build: {
+    target: 'es2020',
+    sourcemap: false, // отключи для продакшена
+    assetsDir: '',
+    emptyOutDir: true,
+  },
+  // ... остальное
+});
     solidPlugin(),
     handlebarsPlugin as any,
     USE_SSL ? (basicSsl as any)(SSL_CONFIG) : undefined,
