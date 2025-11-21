@@ -27,14 +27,14 @@ const handlebarsPlugin = handlebars({
   context: {
     title: 'Telegram Web K',
     description: 'Telegram Web K - Modified Version',
-    url: './', // ИЗМЕНИЛ для Netlify
-    origin: './' // ИЗМЕНИЛ для Netlify
+    url: './',
+    origin: './'
   }
 });
 
 const serverOptions: ServerOptions = {
   port: 8080,
-  proxy: { // ДОБАВИЛ Proxy для обхода блокировок
+  proxy: {
     '/api': {
       target: 'https://api.telegram.org',
       changeOrigin: true,
@@ -79,15 +79,15 @@ if(USE_OWN_SOLID) {
 }
 
 export default defineConfig({
-  base: './', // ВАЖНО!
-  build: {
-    target: 'es2020',
-    sourcemap: false, // отключи для продакшена
-    assetsDir: '',
-    emptyOutDir: true,
-  },
-  // ... остальное
-});
+  base: './', // ВАЖНО для GitHub Pages
+  plugins: [
+    process.env.VITEST ? undefined : checker({
+      typescript: true,
+      eslint: {
+        lintCommand: 'eslint "./src/**/*.{ts,tsx}" --ignore-pattern "/src/solid/*"',
+        useFlatConfig: true
+      }
+    }),
     solidPlugin(),
     handlebarsPlugin as any,
     USE_SSL ? (basicSsl as any)(SSL_CONFIG) : undefined,
@@ -113,10 +113,9 @@ export default defineConfig({
     setupFiles: ['./src/tests/setup.ts']
   },
   server: serverOptions,
-  base: './', // ВАЖНО: изменил для корректной работы на Netlify
   build: {
     target: 'es2020',
-    sourcemap: false, // ОТКЛЮЧИЛ для ускорения сборки
+    sourcemap: false,
     assetsDir: '',
     copyPublicDir: false,
     emptyOutDir: true,
@@ -131,14 +130,14 @@ export default defineConfig({
     format: 'es'
   },
   css: {
-    devSourcemap: false, // ОТКЛЮЧИЛ для production
+    devSourcemap: false,
     postcss: {
       plugins: [
         autoprefixer({})
       ]
     }
   },
-  define: { // ДОБАВИЛ для глобальных переменных
+  define: {
     global: 'globalThis',
     '__DEV__': JSON.stringify(process.env.NODE_ENV === 'development')
   },
