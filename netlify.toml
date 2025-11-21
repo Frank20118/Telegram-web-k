@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "npm install && npm run build"
   publish = "dist"
 
 [[redirects]]
@@ -8,4 +8,8 @@
   status = 200
 
 [build.environment]
-  NODE_VERSION = "16"
+  NODE_VERSION = "18"  # ИЗМЕНИЛ на 18
+  NPM_FLAGS = "--force"
+
+[build.processing]
+  skip_processing = true
