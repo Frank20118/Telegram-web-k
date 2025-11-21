@@ -4,7 +4,6 @@ import handlebars from 'vite-plugin-handlebars';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import {visualizer} from 'rollup-plugin-visualizer';
 import checker from 'vite-plugin-checker';
-// import devtools from 'solid-devtools/vite'
 import autoprefixer from 'autoprefixer';
 import {resolve} from 'path';
 import {existsSync, copyFileSync} from 'fs';
@@ -26,16 +25,28 @@ if(isDEV) {
 
 const handlebarsPlugin = handlebars({
   context: {
-    title: 'Telegram Web',
-    description: 'Telegram is a cloud-based mobile and desktop messaging app with a focus on security and speed.',
-    url: 'https://web.telegram.org/k/',
-    origin: 'https://web.telegram.org/'
+    title: 'Telegram Web K',
+    description: 'Telegram Web K - Modified Version',
+    url: './', // ИЗМЕНИЛ для Netlify
+    origin: './' // ИЗМЕНИЛ для Netlify
   }
 });
 
 const serverOptions: ServerOptions = {
-  // host: '192.168.95.17',
   port: 8080,
+  proxy: { // ДОБАВИЛ Proxy для обхода блокировок
+    '/api': {
+      target: 'https://api.telegram.org',
+      changeOrigin: true,
+      secure: false,
+      rewrite: (path) => path.replace(/^\/api/, '/api')
+    },
+    '/v1': {
+      target: 'https://v1.web.telegram.org',
+      changeOrigin: true,
+      secure: false
+    }
+  },
   sourcemapIgnoreList(sourcePath, sourcemapPath) {
     return sourcePath.includes('node_modules') ||
       sourcePath.includes('logger') ||
@@ -69,14 +80,9 @@ if(USE_OWN_SOLID) {
 
 export default defineConfig({
   plugins: [
-    // devtools({
-    //   /* features options - all disabled by default */
-    //   autoname: true // e.g. enable autoname
-    // }),
     process.env.VITEST ? undefined : checker({
       typescript: true,
       eslint: {
-        // for example, lint .ts and .tsx
         lintCommand: 'eslint "./src/**/*.{ts,tsx}" --ignore-pattern "/src/solid/*"',
         useFlatConfig: true
       }
@@ -84,13 +90,12 @@ export default defineConfig({
     solidPlugin(),
     handlebarsPlugin as any,
     USE_SSL ? (basicSsl as any)(SSL_CONFIG) : undefined,
-    visualizer({
+    process.env.ANALYZE_BUNDLE ? visualizer({
       gzipSize: true,
       template: 'treemap'
-    })
+    }) : undefined
   ].filter(Boolean),
   test: {
-    // include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)'],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
@@ -99,56 +104,44 @@ export default defineConfig({
       '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
       '**/solid/**'
     ],
-    // coverage: {
-    //   provider: 'v8',
-    //   reporter: ['text', 'lcov'],
-    //   include: ['src/**/*.ts', 'store/src/**/*.ts', 'web/src/**/*.ts'],
-    //   exclude: ['**/*.d.ts', 'src/server/*.ts', 'store/src/**/server.ts']
-    // },
     environment: 'jsdom',
     testTransformMode: {web: ['.[jt]sx?$']},
-    // otherwise, solid would be loaded twice:
-    // deps: {registerNodeLoader: true},
-    // if you have few tests, try commenting one
-    // or both out to improve performance:
     threads: false,
     isolate: false,
     globals: true,
     setupFiles: ['./src/tests/setup.ts']
   },
   server: serverOptions,
-  base: '',
+  base: './', // ВАЖНО: изменил для корректной работы на Netlify
   build: {
     target: 'es2020',
-    sourcemap: true,
+    sourcemap: false, // ОТКЛЮЧИЛ для ускорения сборки
     assetsDir: '',
     copyPublicDir: false,
     emptyOutDir: true,
-    minify: NO_MINIFY ? false : undefined,
+    minify: NO_MINIFY ? false : 'esbuild',
     rollupOptions: {
       output: {
         sourcemapIgnoreList: serverOptions.sourcemapIgnoreList
       }
-      // input: {
-      //   main: './index.html',
-      //   sw: './src/index.service.ts'
-      // }
     }
-    // cssCodeSplit: true
   },
   worker: {
     format: 'es'
   },
   css: {
-    devSourcemap: true,
+    devSourcemap: false, // ОТКЛЮЧИЛ для production
     postcss: {
       plugins: [
-        autoprefixer({}) // add options if needed
+        autoprefixer({})
       ]
     }
   },
+  define: { // ДОБАВИЛ для глобальных переменных
+    global: 'globalThis',
+    '__DEV__': JSON.stringify(process.env.NODE_ENV === 'development')
+  },
   resolve: {
-    // conditions: ['development', 'browser'],
     alias: USE_OWN_SOLID ? {
       'rxcore': resolve(rootDir, SOLID_PATH, 'web/core'),
       'solid-js/jsx-runtime': resolve(rootDir, SOLID_PATH, 'jsx'),
